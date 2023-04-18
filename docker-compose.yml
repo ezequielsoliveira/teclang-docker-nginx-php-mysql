@@ -1,0 +1,56 @@
+services:
+    nginx:
+        build:
+           context: ./nginx
+           dockerfile: Dockerfile
+        image: nginx:latest
+        container_name: nginx
+        ports:
+            - 80:80
+        links:
+            - php
+        volumes:
+            - ./nginx/conf.d:/etc/nginx/conf.d
+            - ${APPLICATION_PATH}:/usr/share/nginx/html
+        depends_on:
+            - php
+
+    php:
+        build:
+            context: ./php
+            dockerfile: Dockerfile
+        image: php:8.1-fpm
+        container_name: php
+        expose:
+            - 9000
+        environment:
+            MYSQL_HOST: ${MYSQL_HOST}
+            MYSQL_PORT: ${MYSQL_PORT}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        links:
+            - mysql
+        volumes:
+            - ${APPLICATION_PATH}:/usr/share/nginx/html
+        depends_on:
+            - mysql
+
+    mysql:
+        container_name: mysql
+        build:
+            context: ./mysql
+            dockerfile: Dockerfile
+        image: mysql:latest
+        expose:
+            - 3306
+        environment:
+            MYSQL_HOST: ${MYSQL_HOST}
+            MYSQL_PORT: ${MYSQL_PORT}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        volumes:
+            - ./mysql/data:/var/lib/mysql
